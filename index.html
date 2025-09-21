@@ -1,43 +1,187 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confirm Clicker Game</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 50px;
-        }
-        button {
-            font-size: 20px;
-            padding: 10px 20px;
-            cursor: pointer;
-        }
-        #score {
-            font-size: 24px;
-            margin-top: 20px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ultimate Rage Clicker</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #1a1a1a;
+        color: white;
+        overflow: hidden;
+        height: 100vh;
+        text-align: center;
+    }
+    button {
+        font-size: 22px;
+        padding: 12px 25px;
+        cursor: pointer;
+        background-color: #ff4081;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        position: absolute;
+        transition: all 0.1s;
+        box-shadow: 0 0 15px #ff4081;
+    }
+    #score, #streak, #highScore {
+        font-size: 22px;
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        margin: 5px 0;
+    }
+    #score { top: 10px; }
+    #streak { top: 40px; }
+    #highScore { top: 70px; }
+    #leaderboard {
+        position: fixed;
+        top: 110px;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: left;
+        background: rgba(0,0,0,0.6);
+        padding: 10px;
+        border-radius: 8px;
+    }
+</style>
 </head>
 <body>
-    <h1>Confirm Clicker Game</h1>
-    <button id="clickButton">Click me!</button>
-    <div id="score">Score: 0</div>
+<h1 style="margin-top:160px;">Ultimate Rage Clicker</h1>
+<button id="clickButton">Click me!</button>
+<div id="score">Score: 0</div>
+<div id="streak">Streak: 0</div>
+<div id="highScore">High Score: 0</div>
+<div id="leaderboard">Leaderboard:</div>
 
-    <script>
-        let score = 0;
+<audio id="clickSound" src="https://www.soundjay.com/button/sounds/button-16.mp3"></audio>
+<audio id="bonusSound" src="https://www.soundjay.com/button/sounds/button-09.mp3"></audio>
+<audio id="failSound" src="https://www.soundjay.com/button/sounds/button-10.mp3"></audio>
 
-        document.getElementById('clickButton').addEventListener('click', () => {
-            // Ask for confirmation
-            if (confirm("Do you really want to click?")) {
-                score++;
-                document.getElementById('score').textContent = "Score: " + score;
-            } else {
-                alert("Click canceled!");
-            }
-        });
-    </script>
+<script>
+let score = 0;
+let streak = 0;
+let highScore = localStorage.getItem('rageClickHigh') || 0;
+let leaderboard = JSON.parse(localStorage.getItem('rageClickLeaderboard')) || [];
+
+const button = document.getElementById('clickButton');
+const scoreDisplay = document.getElementById('score');
+const streakDisplay = document.getElementById('streak');
+const highScoreDisplay = document.getElementById('highScore');
+const leaderboardDiv = document.getElementById('leaderboard');
+
+const clickSound = document.getElementById('clickSound');
+const bonusSound = document.getElementById('bonusSound');
+const failSound = document.getElementById('failSound');
+
+const messages = [
+    "Are you sure?", "Clicking again? Brave choice!", "One more click won't hurt...",
+    "Think twice!", "Do it if you dare!"
+];
+const tauntMessages = [
+    "Haha, missed me!", "Too slow!", "You'll never catch me!", 
+    "Keep trying, loser!", "You call that a click?"
+];
+const insaneMessages = [
+    "Stop clicking! Or don't...", "Why are you like this?", "I am everywhere!",
+    "Clicks can't catch me!", "HAHAHA, frustration incoming!"
+];
+
+// Move button with increasing speed and crazy animation
+function moveButton(speedMultiplier = 1) {
+    const maxX = window.innerWidth - button.offsetWidth;
+    const maxY = window.innerHeight - button.offsetHeight;
+    const x = Math.floor(Math.random() * maxX);
+    const y = Math.floor(Math.random() * maxY);
+    button.style.left = x + "px";
+    button.style.top = y + "px";
+    button.style.transform = `rotate(${Math.random()*60-30}deg) scale(${0.9 + Math.random()*0.2})`;
+    button.style.transition = `all ${Math.max(0.05, 0.5 - score*0.02)/speedMultiplier}s`;
+}
+
+// Update displays
+function updateDisplays() {
+    scoreDisplay.textContent = "Score: " + score;
+    streakDisplay.textContent = "Streak: " + streak;
+    highScoreDisplay.textContent = "High Score: " + highScore;
+    renderLeaderboard();
+}
+
+// Render leaderboard
+function renderLeaderboard() {
+    let html = "Leaderboard:<br>";
+    leaderboard.slice(0,5).forEach((entry, i) => {
+        html += `${i+1}. ${entry}<br>`;
+    });
+    leaderboardDiv.innerHTML = html;
+}
+
+// Add score to leaderboard if high enough
+function updateLeaderboard(newScore) {
+    leaderboard.push(newScore);
+    leaderboard.sort((a,b) => b - a);
+    leaderboard = leaderboard.slice(0,5);
+    localStorage.setItem('rageClickLeaderboard', JSON.stringify(leaderboard));
+}
+
+// Click event
+button.addEventListener('click', () => {
+    let message;
+    if(score < 10) {
+        message = messages[Math.floor(Math.random() * messages.length)];
+    } else if(score < 20) {
+        message = tauntMessages[Math.floor(Math.random() * tauntMessages.length)];
+    } else {
+        message = insaneMessages[Math.floor(Math.random() * insaneMessages.length)];
+    }
+
+    if(confirm(message)) {
+        streak++;
+        let bonus = 1;
+
+        if(Math.random() < 0.1) {
+            bonus = Math.floor(Math.random() * 5) + 2;
+            alert(`Lucky! You got x${bonus} bonus!`);
+            bonusSound.play();
+        } else {
+            clickSound.play();
+        }
+
+        // Streak power-ups
+        if(streak % 10 === 0) {
+            bonus += 5;
+            alert(`Streak power-up! +5 bonus points!`);
+            bonusSound.play();
+        }
+
+        score += bonus;
+
+        if(score > highScore) {
+            highScore = score;
+            localStorage.setItem('rageClickHigh', highScore);
+        }
+
+    } else {
+        streak = 0;
+        failSound.play();
+        alert("Click canceled! Streak lost!");
+    }
+
+    // Move button faster if streak high
+    const speedMultiplier = 1 + streak/10;
+    moveButton(speedMultiplier);
+
+    updateDisplays();
+    updateLeaderboard(score);
+});
+
+// Initial setup
+updateDisplays();
+moveButton();
+window.addEventListener('resize', moveButton);
+</script>
 </body>
 </html>
