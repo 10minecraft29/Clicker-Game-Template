@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ultimate Rage Clicker</title>
+<title>Rage Clicker Pro Max</title>
 <style>
     body {
         font-family: Arial, sans-serif;
         margin: 0;
         padding: 0;
-        background: #1a1a1a;
+        background: #0f0f0f;
         color: white;
         overflow: hidden;
         height: 100vh;
@@ -24,7 +24,7 @@
         border: none;
         border-radius: 12px;
         position: absolute;
-        transition: all 0.1s;
+        transition: all 0.05s;
         box-shadow: 0 0 15px #ff4081;
     }
     #score, #streak, #highScore {
@@ -43,14 +43,27 @@
         left: 50%;
         transform: translateX(-50%);
         text-align: left;
-        background: rgba(0,0,0,0.6);
+        background: rgba(0,0,0,0.7);
         padding: 10px;
         border-radius: 8px;
+        max-width: 200px;
+    }
+    .particle {
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+        animation: explode 0.6s forwards;
+    }
+    @keyframes explode {
+        to {
+            opacity: 0;
+            transform: translate(var(--x), var(--y)) scale(0);
+        }
     }
 </style>
 </head>
 <body>
-<h1 style="margin-top:160px;">Ultimate Rage Clicker</h1>
+<h1 style="margin-top:160px;">Rage Clicker Pro Max</h1>
 <button id="clickButton">Click me!</button>
 <div id="score">Score: 0</div>
 <div id="streak">Streak: 0</div>
@@ -90,7 +103,7 @@ const insaneMessages = [
     "Clicks can't catch me!", "HAHAHA, frustration incoming!"
 ];
 
-// Move button with increasing speed and crazy animation
+// Move button
 function moveButton(speedMultiplier = 1) {
     const maxX = window.innerWidth - button.offsetWidth;
     const maxY = window.innerHeight - button.offsetHeight;
@@ -100,6 +113,22 @@ function moveButton(speedMultiplier = 1) {
     button.style.top = y + "px";
     button.style.transform = `rotate(${Math.random()*60-30}deg) scale(${0.9 + Math.random()*0.2})`;
     button.style.transition = `all ${Math.max(0.05, 0.5 - score*0.02)/speedMultiplier}s`;
+}
+
+// Create particle effect
+function createParticles(x, y, color="#ff4081") {
+    for(let i=0;i<15;i++){
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.width = p.style.height = Math.random()*10+5+'px';
+        p.style.backgroundColor = color;
+        p.style.left = x+'px';
+        p.style.top = y+'px';
+        p.style.setProperty('--x', (Math.random()*100-50)+'px');
+        p.style.setProperty('--y', (Math.random()*100-50)+'px');
+        document.body.appendChild(p);
+        setTimeout(()=>p.remove(),600);
+    }
 }
 
 // Update displays
@@ -113,21 +142,30 @@ function updateDisplays() {
 // Render leaderboard
 function renderLeaderboard() {
     let html = "Leaderboard:<br>";
-    leaderboard.slice(0,5).forEach((entry, i) => {
-        html += `${i+1}. ${entry}<br>`;
-    });
+    leaderboard.slice(0,5).forEach((entry, i) => html += `${i+1}. ${entry}<br>`);
     leaderboardDiv.innerHTML = html;
 }
 
-// Add score to leaderboard if high enough
+// Add score to leaderboard
 function updateLeaderboard(newScore) {
     leaderboard.push(newScore);
-    leaderboard.sort((a,b) => b - a);
+    leaderboard.sort((a,b)=>b-a);
     leaderboard = leaderboard.slice(0,5);
     localStorage.setItem('rageClickLeaderboard', JSON.stringify(leaderboard));
 }
 
-// Click event
+// Random mini-event
+function miniEvent() {
+    const eventRoll = Math.random();
+    if(eventRoll < 0.1) {
+        alert("Mini Event! Slow motion button for 3 clicks!");
+        button.dataset.slow = "true";
+    } else if(eventRoll < 0.2) {
+        alert("Mini Event! Double points for 1 click!");
+        button.dataset.double = "true";
+    }
+}
+
 button.addEventListener('click', () => {
     let message;
     if(score < 10) {
@@ -138,41 +176,57 @@ button.addEventListener('click', () => {
         message = insaneMessages[Math.floor(Math.random() * insaneMessages.length)];
     }
 
+    const rect = button.getBoundingClientRect();
+    const x = rect.left + rect.width/2;
+    const y = rect.top + rect.height/2;
+
     if(confirm(message)) {
         streak++;
         let bonus = 1;
 
+        // Random bonus
         if(Math.random() < 0.1) {
             bonus = Math.floor(Math.random() * 5) + 2;
-            alert(`Lucky! You got x${bonus} bonus!`);
             bonusSound.play();
         } else {
             clickSound.play();
         }
 
-        // Streak power-ups
+        // Streak power-up
         if(streak % 10 === 0) {
             bonus += 5;
-            alert(`Streak power-up! +5 bonus points!`);
             bonusSound.play();
+            createParticles(x,y,"#00ffea");
+        }
+
+        // Mini-event
+        miniEvent();
+
+        // Double points mini-event
+        if(button.dataset.double === "true") {
+            bonus *= 2;
+            delete button.dataset.double;
+            createParticles(x,y,"#ffff00");
         }
 
         score += bonus;
+        createParticles(x,y);
 
         if(score > highScore) {
             highScore = score;
             localStorage.setItem('rageClickHigh', highScore);
         }
 
+        // Teleport button like boss if streak high
+        if(streak >= 15) moveButton(2);
+        else moveButton(streak/5);
+
     } else {
         streak = 0;
         failSound.play();
         alert("Click canceled! Streak lost!");
+        moveButton();
     }
-
-    // Move button faster if streak high
-    const speedMultiplier = 1 + streak/10;
-    moveButton(speedMultiplier);
 
     updateDisplays();
     updateLeaderboard(score);
