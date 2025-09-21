@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Clicker Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        button {
+            font-size: 20px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        #score {
+            font-size: 24px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Confirm Clicker Game</h1>
+    <button id="clickButton">Click me!</button>
+    <div id="score">Score: 0</div>
+
+    <script>
+        let score = 0;
+
+        document.getElementById('clickButton').addEventListener('click', () => {
+            // Ask for confirmation
+            if (confirm("Do you really want to click?")) {
+                score++;
+                document.getElementById('score').textContent = "Score: " + score;
+            } else {
+                alert("Click canceled!");
+            }
+        });
+    </script>
+</body>
+</html>
