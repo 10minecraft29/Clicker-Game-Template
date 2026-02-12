@@ -76,6 +76,9 @@
 
 <script>
 let score = 0;
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        score = 0; // Correctly resets the existing variable
 let streak = 0;
 let highScore = localStorage.getItem('rageClickHigh') || 0;
 let leaderboard = JSON.parse(localStorage.getItem('rageClickLeaderboard')) || [];
@@ -226,6 +229,10 @@ button.addEventListener('click', () => {
         failSound.play();
         alert("Click canceled! Streak lost!");
         moveButton();
+    }
+
+    if (e.key === 'Enter') {
+  alert('Enter key pressed! Progress reset.');
     }
 
     updateDisplays();
