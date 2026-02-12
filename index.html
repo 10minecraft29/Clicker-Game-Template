@@ -231,20 +231,27 @@ button.addEventListener('click', () => {
     updateDisplays();
     updateLeaderboard(score);
   
-}
-
-document.addEventListener('keydown', function(event) {
-  // 3. Check if the pressed key is 'Enter'
-  if (event.key === 'Enter') {
-    score = 0; // Reset variable to 0
-    console.log('Variable reset to:', score);
-    updateDisplays();
-  }
 });
 // Initial setup
 updateDisplays();
 moveButton();
 window.addEventListener('resize', moveButton);
+// Reset score when Enter key is pressed
+window.addEventListener('keydown', (event) => {
+    if (event.key === "Enter") {
+
+        // Save to leaderboard before reset
+        updateLeaderboard(score);
+
+        score = 0;
+        streak = 0;
+
+        updateDisplays();
+
+        alert("Score reset by Enter key!");
+    }
+});
+
 </script>
 </body>
 </html>
