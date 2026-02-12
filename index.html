@@ -76,9 +76,6 @@
 
 <script>
 let score = 0;
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-        score = 0; // Correctly resets the existing variable
 let streak = 0;
 let highScore = localStorage.getItem('rageClickHigh') || 0;
 let leaderboard = JSON.parse(localStorage.getItem('rageClickLeaderboard')) || [];
@@ -233,9 +230,17 @@ button.addEventListener('click', () => {
 
     updateDisplays();
     updateLeaderboard(score);
+  
+}
 
+document.addEventListener('keydown', function(event) {
+  // 3. Check if the pressed key is 'Enter'
+  if (event.key === 'Enter') {
+    score = 0; // Reset variable to 0
+    console.log('Variable reset to:', score);
+    updateDisplays();
+  }
 });
-
 // Initial setup
 updateDisplays();
 moveButton();
